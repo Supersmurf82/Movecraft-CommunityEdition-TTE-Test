@@ -64,6 +64,7 @@ import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
@@ -91,6 +92,31 @@ public class BlockListener implements Listener {
                 //if (craft.getPassengers().contains(e.getPlayer())) {
                 //  return;
                 //}
+                e.setCancelled(true);
+                return;
+            }
+        }
+    }
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent e) {
+        // Check if the event was cancelled or if the settings do not protect piloted crafts
+        if (e.isCancelled() || !Settings.ProtectPilotedCrafts) {
+            return;
+        }
+
+        // Get the player placing the block
+        Player player = e.getPlayer();
+        Location blockLocation = e.getBlock().getLocation();
+        
+        // Check if the player is piloting a craft
+        for (Craft craft : CraftManager.getInstance().getCraftsInWorld(blockLocation.getWorld())) {
+            if (craft == null || craft.getDisabled()) {
+                continue;
+            }
+
+            // Check if the player is a passenger of the craft
+            if (craft.getPassengers().contains(player)) {
+                // Cancel the event if the player is piloting a craft
                 e.setCancelled(true);
                 return;
             }
