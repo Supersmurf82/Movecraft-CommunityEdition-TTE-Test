@@ -99,24 +99,20 @@ public class BlockListener implements Listener {
     }
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent e) {
-        // Check if the event was cancelled or if the settings do not protect piloted crafts
-        if (e.isCancelled() || !Settings.ProtectPilotedCrafts) {
+        if (!Settings.ProtectPilotedCrafts) {
             return;
         }
 
-        // Get the player placing the block
-        Player player = e.getPlayer();
-        Location blockLocation = e.getBlock().getLocation();
-        
-        // Check if the player is piloting a craft
-        for (Craft craft : CraftManager.getInstance().getCraftsInWorld(blockLocation.getWorld())) {
-            if (craft == null || craft.getDisabled()) {
+        MovecraftLocation movecraftLocation = MathUtils.bukkit2MovecraftLoc(e.getBlock().getLocation());
+        for (Craft craft : CraftManager.getInstance().getCraftsInWorld(e.getBlock().getWorld())) {
+            if (craft == null || craft.getDisabled())
                 continue;
-            }
 
-            // Check if the player is a passenger of the craft
-            if (craft.getPassengers().contains(player)) {
-                // Cancel the event if the player is piloting a craft
+            if (craft.getHitBox().contains(movecraftLocation)) {
+                // TODO: for some reason before when this check runs the location is no longer in the hitbox
+                //if (craft.getPassengers().contains(e.getPlayer())) {
+                //  return;
+                //}
                 e.setCancelled(true);
                 return;
             }
